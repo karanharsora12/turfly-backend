@@ -3,7 +3,7 @@ import { ParticipantsService } from './participants.service';
 import { sendResponse } from '../../utils/response';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 import { z } from 'zod';
-import { ParticipantStatus } from '@prisma/client';
+import { ParticipantStatus } from "../../../generated/prisma";
 
 const updateStatusSchema = z.object({
   status: z.enum([ParticipantStatus.APPROVED, ParticipantStatus.REJECTED, ParticipantStatus.KICKED])

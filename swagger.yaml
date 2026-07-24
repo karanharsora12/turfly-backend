@@ -3,9 +3,11 @@ info:
   title: Sports Meetup API
   description: API documentation for the Sports Meetup Application
   version: 1.0.0
+
 servers:
   - url: http://localhost:3000/api
     description: Local development server
+
 paths:
   /:
     get:
@@ -13,3 +15,48 @@ paths:
       responses:
         '200':
           description: Successful response
+
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      description: Creates a new user account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - username
+                - email
+                - password
+              properties:
+                fullName:
+                  type: string
+                  example: John Doe
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  example: Password@123
+
+      responses:
+        '201':
+          description: User registered successfully
+
+        '400':
+          description: Validation error
+
+        '409':
+          description: User already exists
+
+        '500':
+          description: Internal server error
