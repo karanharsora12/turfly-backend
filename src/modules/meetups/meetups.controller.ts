@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { MeetupsService } from './meetups.service';
-import { sendResponse } from '../../utils/response';
-import { z } from 'zod';
-import { AuthRequest } from '../../middlewares/auth.middleware';
+import { Request, Response, NextFunction } from "express";
+import { MeetupsService } from "./meetups.service";
+import { sendResponse } from "../../utils/response";
+import { z } from "zod";
+import { AuthRequest } from "../../middlewares/auth.middleware";
 
 const meetupSchema = z.object({
   title: z.string().min(5),
@@ -26,13 +26,25 @@ export class MeetupsController {
       const searchParams = {
         sportId: req.query.sportId as string,
         date: req.query.date as string,
-        latitude: req.query.lat ? parseFloat(req.query.lat as string) : undefined,
-        longitude: req.query.lng ? parseFloat(req.query.lng as string) : undefined,
-        distanceInKm: req.query.distance ? parseFloat(req.query.distance as string) : 20,
+        latitude: req.query.lat
+          ? parseFloat(req.query.lat as string)
+          : undefined,
+        longitude: req.query.lng
+          ? parseFloat(req.query.lng as string)
+          : undefined,
+        distanceInKm: req.query.distance
+          ? parseFloat(req.query.distance as string)
+          : 20,
       };
 
       const meetups = await this.meetupsService.searchMeetups(searchParams);
-      return sendResponse(res, 200, true, 'Meetups fetched successfully', meetups);
+      return sendResponse(
+        res,
+        200,
+        true,
+        "Meetups fetched successfully",
+        meetups,
+      );
     } catch (error) {
       next(error);
     }
@@ -40,42 +52,80 @@ export class MeetupsController {
 
   getMeetupById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const meetup = await this.meetupsService.getMeetupById(id);
-      if (!meetup) return sendResponse(res, 404, false, 'Meetup not found');
-      return sendResponse(res, 200, true, 'Meetup fetched successfully', meetup);
+      if (!meetup) return sendResponse(res, 404, false, "Meetup not found");
+      return sendResponse(
+        res,
+        200,
+        true,
+        "Meetup fetched successfully",
+        meetup,
+      );
     } catch (error) {
       next(error);
     }
   };
 
-  createMeetup = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  createMeetup = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const validatedData = meetupSchema.parse(req.body);
-      const meetup = await this.meetupsService.createMeetup(req.user!.id, validatedData);
-      return sendResponse(res, 201, true, 'Meetup created successfully', meetup);
+      const meetup = await this.meetupsService.createMeetup(
+        req.user!.id,
+        validatedData,
+      );
+      return sendResponse(
+        res,
+        201,
+        true,
+        "Meetup created successfully",
+        meetup,
+      );
     } catch (error) {
       next(error);
     }
   };
 
-  updateMeetup = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  updateMeetup = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const validatedData = meetupSchema.partial().parse(req.body);
-      
-      const meetup = await this.meetupsService.updateMeetup(id, req.user!.id, req.user!.role, validatedData);
-      return sendResponse(res, 200, true, 'Meetup updated successfully', meetup);
+
+      const meetup = await this.meetupsService.updateMeetup(
+        id,
+        req.user!.id,
+        req.user!.role,
+        validatedData,
+      );
+      return sendResponse(
+        res,
+        200,
+        true,
+        "Meetup updated successfully",
+        meetup,
+      );
     } catch (error) {
       next(error);
     }
   };
 
-  deleteMeetup = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  deleteMeetup = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.meetupsService.deleteMeetup(id, req.user!.id, req.user!.role);
-      return sendResponse(res, 200, true, 'Meetup deleted successfully');
+      return sendResponse(res, 200, true, "Meetup deleted successfully");
     } catch (error) {
       next(error);
     }
