@@ -64,13 +64,13 @@ export class AuthService {
     const accessToken = jwt.sign(
       { id: user.id, role: user.role },
       config.JWT_SECRET,
-      { expiresIn: config.JWT_EXPIRES_IN }
+      { expiresIn: config.JWT_EXPIRES_IN as any }
     );
 
     const refreshToken = jwt.sign(
       { id: user.id },
       config.JWT_REFRESH_SECRET,
-      { expiresIn: config.JWT_REFRESH_EXPIRES_IN }
+      { expiresIn: config.JWT_REFRESH_EXPIRES_IN as any }
     );
 
     await prisma.user.update({
@@ -111,13 +111,13 @@ export class AuthService {
       const newAccessToken = jwt.sign(
         { id: user.id, role: user.role },
         config.JWT_SECRET,
-        { expiresIn: config.JWT_EXPIRES_IN }
+        { expiresIn: config.JWT_EXPIRES_IN as any }
       );
 
       const newRefreshToken = jwt.sign(
         { id: user.id },
         config.JWT_REFRESH_SECRET,
-        { expiresIn: config.JWT_REFRESH_EXPIRES_IN }
+        { expiresIn: config.JWT_REFRESH_EXPIRES_IN as any }
       );
 
       await prisma.user.update({

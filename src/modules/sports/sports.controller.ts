@@ -23,7 +23,7 @@ export class SportsController {
 
   getSportById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const sport = await this.sportsService.getSportById(id);
       if (!sport) return sendResponse(res, 404, false, 'Sport not found');
       return sendResponse(res, 200, true, 'Sport fetched successfully', sport);
@@ -44,7 +44,7 @@ export class SportsController {
 
   updateSport = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const validatedData = sportSchema.partial().parse(req.body);
       const sport = await this.sportsService.updateSport(id, validatedData);
       return sendResponse(res, 200, true, 'Sport updated successfully', sport);
@@ -55,7 +55,7 @@ export class SportsController {
 
   deleteSport = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.sportsService.deleteSport(id);
       return sendResponse(res, 200, true, 'Sport deleted successfully');
     } catch (error) {

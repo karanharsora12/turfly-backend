@@ -28,7 +28,7 @@ export class UsersController {
 
   getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const user = await this.usersService.getUserById(id);
       if (!user) {
         return sendResponse(res, 404, false, 'User not found');

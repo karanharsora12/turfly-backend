@@ -36,7 +36,7 @@ export class VenuesController {
 
   getVenueById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const venue = await this.venuesService.getVenueById(id);
       if (!venue) return sendResponse(res, 404, false, 'Venue not found');
       return sendResponse(res, 200, true, 'Venue fetched successfully', venue);
@@ -57,7 +57,7 @@ export class VenuesController {
 
   updateVenue = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const validatedData = venueSchema.partial().parse(req.body);
       const venue = await this.venuesService.updateVenue(id, validatedData);
       return sendResponse(res, 200, true, 'Venue updated successfully', venue);
@@ -68,7 +68,7 @@ export class VenuesController {
 
   deleteVenue = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.venuesService.deleteVenue(id);
       return sendResponse(res, 200, true, 'Venue deleted successfully');
     } catch (error) {

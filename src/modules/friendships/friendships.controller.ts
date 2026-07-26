@@ -8,7 +8,7 @@ export class FriendshipsController {
 
   sendFriendRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const { userId } = req.params; // Target user to follow/friend
+      const { userId } = req.params as { userId: string }; // Target user to follow/friend
       const friendship = await this.friendshipsService.sendFriendRequest(req.user!.id, userId);
       return sendResponse(res, 201, true, 'Friend request sent', friendship);
     } catch (error) {
@@ -18,7 +18,7 @@ export class FriendshipsController {
 
   acceptFriendRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const { userId } = req.params; // Follower user ID
+      const { userId } = req.params as { userId: string }; // Follower user ID
       const friendship = await this.friendshipsService.acceptFriendRequest(userId, req.user!.id);
       return sendResponse(res, 200, true, 'Friend request accepted', friendship);
     } catch (error) {
@@ -28,7 +28,7 @@ export class FriendshipsController {
 
   rejectFriendRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params as { userId: string };
       await this.friendshipsService.rejectFriendRequest(userId, req.user!.id);
       return sendResponse(res, 200, true, 'Friend request rejected');
     } catch (error) {
@@ -38,7 +38,7 @@ export class FriendshipsController {
 
   removeFriend = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params as { userId: string };
       await this.friendshipsService.removeFriend(req.user!.id, userId);
       return sendResponse(res, 200, true, 'Friend removed / Unfollowed successfully');
     } catch (error) {
