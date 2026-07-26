@@ -1,5 +1,5 @@
 import prisma from '../../utils/prisma';
-import { ParticipantStatus } from '@prisma/client';
+import { ParticipantStatus } from "../../../generated/prisma";
 
 export class ParticipantsService {
   async joinMeetup(userId: string, meetupId: string) {

@@ -1,0 +1,294 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum MeetupStatus {
+  OPEN
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  KICKED
+  WAITLISTED
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+enum NotificationType {
+  MEETUP_CREATED
+  MEETUP_CANCELLED
+  MEETUP_REMINDER
+  FRIEND_REQUEST
+  JOIN_REQUEST
+  JOIN_APPROVED
+  NEW_CHAT_MESSAGE
+  NEW_MEETUP_NEARBY
+}
+
+model User {
+  id             String    @id @default(uuid())
+  fullName       String
+  username       String    @unique
+  email          String    @unique
+  password       String
+  role           Role      @default(USER)
+  profileImage   String?
+  bio            String?
+  dateOfBirth    DateTime?
+  gender         Gender?
+  city           String?
+  country        String?
+  latitude       Float?
+  longitude      Float?
+  skillLevel     String?
+  rating         Float     @default(0.0)
+  gamesPlayed    Int       @default(0)
+  followersCount Int       @default(0)
+  followingCount Int       @default(0)
+  isOnline       Boolean   @default(false)
+  lastSeen       DateTime? @default(now())
+
+  refreshToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  preferredSports UserSport[]
+  hostedMeetups   Meetup[]      @relation("Host")
+  participations  Participant[]
+
+  // Friendships
+  followers Friendship[] @relation("Following")
+  following Friendship[] @relation("Follower")
+
+  // Chat and Notifications
+  chats         ChatParticipant[]
+  messages      Message[]
+  notifications Notification[]
+
+  // Reviews
+  reviewsGiven    Review[] @relation("Reviewer")
+  reviewsReceived Review[] @relation("ReviewedUser")
+}
+
+model Sport {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  icon        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users   UserSport[]
+  meetups Meetup[]
+  venues  VenueSport[]
+}
+
+model UserSport {
+  userId  String
+  sportId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sport Sport @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@id([userId, sportId])
+}
+
+model Venue {
+  id         String   @id @default(uuid())
+  name       String
+  address    String
+  latitude   Float
+  longitude  Float
+  images     String[]
+  facilities String[]
+  rating     Float    @default(0.0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sports  VenueSport[]
+  meetups Meetup[]
+}
+
+model VenueSport {
+  venueId String
+  sportId String
+
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  sport Sport @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@id([venueId, sportId])
+}
+
+model Meetup {
+  id             String       @id @default(uuid())
+  title          String
+  description    String
+  date           DateTime
+  startTime      DateTime
+  endTime        DateTime
+  skillLevel     String?
+  maximumPlayers Int
+  currentPlayers Int          @default(0)
+  entryFee       Float        @default(0.0)
+  isPublic       Boolean      @default(true)
+  status         MeetupStatus @default(OPEN)
+  meetupBanner   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  hostId String
+  host   User   @relation("Host", fields: [hostId], references: [id])
+
+  sportId String
+  sport   Sport  @relation(fields: [sportId], references: [id])
+
+  venueId String?
+  venue   Venue?  @relation(fields: [venueId], references: [id])
+
+  participants Participant[]
+  reviews      Review[]
+  chat         Chat?
+}
+
+model Participant {
+  id     String            @id @default(uuid())
+  status ParticipantStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  meetupId String
+  meetup   Meetup @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, meetupId])
+}
+
+model Friendship {
+  id     String           @id @default(uuid())
+  status FriendshipStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  followerId String
+  follower   User   @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+
+  followingId String
+  following   User   @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Chat {
+  id   String   @id @default(uuid())
+  type ChatType
+  name String? // For group chats
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // For group chats linked to a meetup
+  meetupId String? @unique
+  meetup   Meetup? @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@id([chatId, userId])
+}
+
+model Message {
+  id       String  @id @default(uuid())
+  content  String?
+  image    String?
+  location Json? // Optional { lat: Float, lng: Float }
+  isRead   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id      String           @id @default(uuid())
+  type    NotificationType
+  content String
+  isRead  Boolean          @default(false)
+  link    String? // e.g., /meetups/123
+
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id     String  @id @default(uuid())
+  rating Float
+  review String?
+
+  createdAt DateTime @default(now())
+
+  reviewerId String
+  reviewer   User   @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  reviewedUserId String
+  reviewedUser   User   @relation("ReviewedUser", fields: [reviewedUserId], references: [id], onDelete: Cascade)
+
+  meetupId String
+  meetup   Meetup @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+}

@@ -1,5 +1,5 @@
 import prisma from '../../utils/prisma';
-import { NotificationType } from '@prisma/client';
+import { NotificationType } from '../../../generated/prisma';
 
 export class NotificationsService {
   async getUserNotifications(userId: string) {

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { sendResponse } from '../utils/response';
 import prisma from '../utils/prisma';
-import { Role } from '@prisma/client';
+import { Role } from '../../../generated/prisma';
 
 export interface AuthRequest extends Request {
   user?: {
