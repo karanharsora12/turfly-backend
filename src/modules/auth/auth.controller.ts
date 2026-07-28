@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from './auth.service';
 import { sendResponse } from '../../utils/response';
-import { registerSchema, loginSchema, refreshTokenSchema } from './auth.validation';
+import { registerSchema, loginSchema, refreshTokenSchema, verifyOTPSchema } from './auth.validation';
 
 export class AuthController {
   private authService = new AuthService();
@@ -43,6 +43,42 @@ export class AuthController {
         await this.authService.logout(userId);
       }
       return sendResponse(res, 200, true, 'Logged out successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  generateOTP = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email } = req.body;
+
+      const result = await this.authService.generateOTP(email);
+
+      return sendResponse(
+        res,
+        200,
+        true,
+        "OTP sent successfully",
+        result
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, otp } = verifyOTPSchema.parse(req.body);
+
+      const result = await this.authService.verifyOTP(email, otp);
+
+      return sendResponse(
+        res,
+        200,
+        true,
+        "OTP verified successfully",
+        result
+      );
     } catch (error) {
       next(error);
     }
