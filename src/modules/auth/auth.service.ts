@@ -2,6 +2,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../../utils/prisma';
 import { config } from '../../config';
+import { generateOTP } from '../../utils/generateOTP';
+import { sendOTPEmail } from './email.service';
+
 
 export class AuthService {
   async register(data: any) {
@@ -145,5 +148,97 @@ export class AuthService {
         lastSeen: new Date()
       }
     });
+  }
+
+  async generateOTP(email: string) {
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      const error: any = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Delete old OTP if it exists
+    await prisma.oTP.deleteMany({
+      where: {
+        userId: user.id
+      }
+    });
+
+    // Generate new OTP
+   const otp = generateOTP();
+    const expiresAt =  new Date(Date.now() + 5 * 60 * 1000);
+
+    // Save OTP
+    await prisma.oTP.create({
+      data: {
+        code: otp,
+        userId: user.id,
+        expiresAt 
+      }
+    });
+
+    // Send OTP via email
+    await sendOTPEmail(user.email, otp);
+
+    return {
+      email: user.email
+    };
+  }
+
+  async verifyOTP(email: string, otp: string) {
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      const error: any = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Find OTP
+    const otpRecord = await prisma.oTP.findFirst({
+      where: {
+        userId: user.id,
+        code: otp
+      }
+    });
+
+    if (!otpRecord) {
+      const error: any = new Error("Invalid OTP");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Check if OTP has expired
+    if (otpRecord.expiresAt < new Date()) {
+      // Delete expired OTP
+      await prisma.oTP.delete({
+        where: {
+          id: otpRecord.id
+        }
+      });
+
+      const error: any = new Error("OTP has expired");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Delete OTP after successful verification
+    await prisma.oTP.delete({
+      where: {
+        id: otpRecord.id
+      }
+    });
+
+    return {
+      message: "OTP verified successfully"
+    };
   }
 }

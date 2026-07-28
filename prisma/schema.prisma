@@ -87,6 +87,7 @@ model User {
   preferredSports UserSport[]
   hostedMeetups   Meetup[]       @relation("Host")
   participations  Participant[]
+  otps OTP[]
   
   // Friendships
   followers       Friendship[]   @relation("Following")
@@ -100,6 +101,17 @@ model User {
   // Reviews
   reviewsGiven    Review[]       @relation("Reviewer")
   reviewsReceived Review[]       @relation("ReviewedUser")
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  code      String
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Sport {
